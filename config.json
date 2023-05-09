@@ -1,0 +1,21 @@
+{
+	"InputFile": "device.fil",
+	"DBConfig": {
+		"Host": "10.8.4.239",
+		"Port": "3306",
+		"Username": "root",
+		"Password": "123456",
+		"Database": "fpbdsdb_child"
+	},
+	"LockInfo": {
+		"StartID": 100,
+		"StationId": 921,
+		"ProductionDate": "2015-01-20 00:00:00",
+		"RegistDate": "2015-01-20 00:00:00",
+		"Register": "管理员",
+		"CommissionDate": "2015-08-13 00:00:00",
+		"Stateost": "正常",
+		"ValidDate": "2060-01-01 00:00:00",
+		"Note": "-tool-批量导入"
+	}
+}
