@@ -13,7 +13,7 @@ import (
 type Connection struct {
 	DB          *sql.DB
 	IsConnected bool
-	Config      ToolConfig
+	Config      JsonConfig
 }
 
 // Connect 初始化mysql

@@ -10,7 +10,7 @@ import (
 	"strconv"
 )
 
-type ToolConfig struct {
+type JsonConfig struct {
 	InputFile string `json:"InputFile" default:"device.fil"`
 	DBConfig  struct {
 		Host     string `json:"Host" default:"127.0.0.1"`
@@ -42,7 +42,7 @@ type ConfigInterface interface {
 }
 
 // 配置
-var Config ToolConfig
+var JConfig *JsonConfig = NewConfig()
 
 // 配置文件名
 var configFile string = "config.json"
@@ -51,7 +51,7 @@ var configFile string = "config.json"
 var tagDefaultName string = "default"
 
 // 恢复默认值
-func (Config *ToolConfig) ReDefault(config interface{}) error {
+func (Config *JsonConfig) ReDefault(config interface{}) error {
 	t, v := reflect.TypeOf(config), reflect.ValueOf(config)
 	tE, vE := t.Elem(), v.Elem()
 	if t.Kind() != reflect.Ptr || v.Kind() != reflect.Ptr {
@@ -89,7 +89,7 @@ func (Config *ToolConfig) ReDefault(config interface{}) error {
 }
 
 // 读取配置文件
-func (Config *ToolConfig) ReadFile() error {
+func (Config *JsonConfig) ReadFile() error {
 	configFile, err := ioutil.ReadFile(configFile)
 	if err != nil {
 		return err
@@ -101,7 +101,7 @@ func (Config *ToolConfig) ReadFile() error {
 }
 
 // 写入配置文件
-func (Config *ToolConfig) WriteFile() error {
+func (Config *JsonConfig) WriteFile() error {
 	jsonStr, err := json.MarshalIndent(Config, "", "\t")
 	if err != nil {
 		return err
@@ -112,20 +112,44 @@ func (Config *ToolConfig) WriteFile() error {
 	return nil
 }
 
-func init() {
-	if err := Config.ReadFile(); err == nil {
-		fmt.Println("读取配置文件成功")
-	} else {
-		fmt.Println("读取配置文件失败", err)
-		if err := Config.ReDefault(&Config); err == nil {
-			fmt.Println("恢复默认参数成功")
-			if err := Config.WriteFile(); err == nil {
-				fmt.Println("生成配置文件成功")
-			} else {
-				fmt.Println("生成配置文件失败", err)
-			}
+func (Config *JsonConfig) ForcedDefault() {
+	if err := Config.ReDefault(&Config); err == nil {
+		fmt.Println("恢复默认参数成功")
+		if err := Config.WriteFile(); err == nil {
+			fmt.Println("生成配置文件成功")
 		} else {
-			fmt.Println("恢复默认参数失败", err)
+			fmt.Println("生成配置文件失败", err)
 		}
+
+	} else {
+		fmt.Println("恢复默认参数失败", err)
 	}
+}
+
+// func init() {
+//
+//	if err := Config.ReadFile(); err == nil {
+//		fmt.Println("读取配置文件成功")
+//	} else {
+//
+//		fmt.Println("读取配置文件失败", err)
+//		if err := Config.ReDefault(&Config); err == nil {
+//			fmt.Println("恢复默认参数成功")
+//			if err := Config.WriteFile(); err == nil {
+//				fmt.Println("生成配置文件成功")
+//			} else {
+//				fmt.Println("生成配置文件失败", err)
+//			}
+//		} else {
+//			fmt.Println("恢复默认参数失败", err)
+//		}
+//	}
+// }
+
+func NewConfig() (jconfig *JsonConfig) {
+	jconfig = new(JsonConfig)
+	if err := jconfig.ReadFile(); err == nil {
+		fmt.Println("读取配置文件成功")
+	}
+	return jconfig
 }
