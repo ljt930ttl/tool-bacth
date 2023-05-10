@@ -8,7 +8,7 @@ import (
 	"tool/logger"
 )
 
-type Operator interface {
+type OperatorInterface interface {
 	QueryRows(sqlStr string, args ...interface{}) ([]MapSS, error)
 	ExecControl(sqlStr string, args ...interface{}) error
 	GetDB() *ConnDB

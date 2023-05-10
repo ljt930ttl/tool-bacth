@@ -159,31 +159,31 @@ func staticLogger() *logger {
 	return static_lo
 }
 
-func Debug(v ...interface{}) {
-	print(default_format, LEVEL_DEBUG, default_level, 2, v...)
+func Debug(format_string string, v ...interface{}) {
+	printf(default_format, LEVEL_DEBUG, default_level, 2, format_string, v...)
 }
-func Info(v ...interface{}) {
-	print(default_format, LEVEL_INFO, default_level, 2, v...)
+func Info(format_string string, v ...interface{}) {
+	printf(default_format, LEVEL_INFO, default_level, 2, format_string, v...)
 }
-func Warn(v ...interface{}) {
-	print(default_format, LEVEL_WARN, default_level, 2, v...)
+func Warn(format_string string, v ...interface{}) {
+	printf(default_format, LEVEL_WARN, default_level, 2, format_string, v...)
 }
-func Error(v ...interface{}) {
-	print(default_format, LEVEL_ERROR, default_level, 2, v...)
+func Error(format_string string, v ...interface{}) {
+	printf(default_format, LEVEL_ERROR, default_level, 2, format_string, v...)
 }
-func Fatal(v ...interface{}) {
-	print(default_format, LEVEL_FATAL, default_level, 2, v...)
+func Fatal(format_string string, v ...interface{}) {
+	printf(default_format, LEVEL_FATAL, default_level, 2, format_string, v...)
 }
 
-func print(_format FORMAT, level, _default_level LEVEL, calldepth int, v ...interface{}) {
+func printf(_format FORMAT, level, _default_level LEVEL, calldepth int, format_string string, v ...interface{}) {
 	if level < _default_level {
 		return
 	}
-	staticLogger().println(level, k1(calldepth), v...)
+	staticLogger().printf(level, k1(calldepth), format_string, v...)
 }
 
-func __print(_format FORMAT, level, _default_level LEVEL, calldepth int, v ...interface{}) {
-	console(fmt.Sprint(v...), getlevelname(level, default_format), _format, k1(calldepth))
+func __printf(_format FORMAT, level, _default_level LEVEL, calldepth int, format_string string, v ...interface{}) {
+	console(fmt.Sprintf(format_string, v...), getlevelname(level, default_format), _format, k1(calldepth))
 }
 
 func getlevelname(level LEVEL, format FORMAT) (levelname string) {
@@ -236,20 +236,20 @@ func (l *logger) SetConsole(_isConsole bool) *logger {
 	l.isConsole = _isConsole
 	return l
 }
-func (l *logger) Debug(v ...interface{}) {
-	l.println(LEVEL_DEBUG, 2, v...)
+func (l *logger) Debug(format_string string, v ...interface{}) {
+	l.printf(LEVEL_DEBUG, 2, format_string, v...)
 }
-func (l *logger) Info(v ...interface{}) {
-	l.println(LEVEL_INFO, 2, v...)
+func (l *logger) Info(format_string string, v ...interface{}) {
+	l.printf(LEVEL_INFO, 2, format_string, v...)
 }
-func (l *logger) Warn(v ...interface{}) {
-	l.println(LEVEL_WARN, 2, v...)
+func (l *logger) Warn(format_string string, v ...interface{}) {
+	l.printf(LEVEL_WARN, 2, format_string, v...)
 }
-func (l *logger) Error(v ...interface{}) {
-	l.println(LEVEL_ERROR, 2, v...)
+func (l *logger) Error(format_string string, v ...interface{}) {
+	l.printf(LEVEL_ERROR, 2, format_string, v...)
 }
-func (l *logger) Fatal(v ...interface{}) {
-	l.println(LEVEL_FATAL, 2, v...)
+func (l *logger) Fatal(format_string string, v ...interface{}) {
+	l.printf(LEVEL_FATAL, 2, format_string, v...)
 }
 func (l *logger) SetFormat(format FORMAT) *logger {
 	l.format = format
@@ -338,22 +338,22 @@ func (l *logger) backUp() (err, openFileErr error) {
 	}
 	err = l.fileObj.close()
 	if err != nil {
-		__print(l.format, LEVEL_ERROR, LEVEL_ERROR, 1, err.Error())
+		__printf(l.format, LEVEL_ERROR, LEVEL_ERROR, 1, err.Error())
 		return
 	}
 	err = l.fileObj.rename()
 	if err != nil {
-		__print(l.format, LEVEL_ERROR, LEVEL_ERROR, 1, err.Error())
+		__printf(l.format, LEVEL_ERROR, LEVEL_ERROR, 1, err.Error())
 		return
 	}
 	openFileErr = l.fileObj.openFileHandler()
 	if openFileErr != nil {
-		__print(l.format, LEVEL_ERROR, LEVEL_ERROR, 1, openFileErr.Error())
+		__printf(l.format, LEVEL_ERROR, LEVEL_ERROR, 1, openFileErr.Error())
 	}
 	return
 }
 
-func (l *logger) println(_level LEVEL, calldepth int, v ...interface{}) {
+func (l *logger) printf(_level LEVEL, calldepth int, format_string string, v ...interface{}) {
 	if l.level > _level {
 		return
 	}
@@ -367,18 +367,18 @@ func (l *logger) println(_level LEVEL, calldepth int, v ...interface{}) {
 				l.rwLock.RLock()
 				defer l.rwLock.RUnlock()
 				if l.format != FORMAT_NANO {
-					s := fmt.Sprint(v...)
+					s := fmt.Sprintf(format_string, v...)
 					buf := getOutBuffer(s, getlevelname(_level, l.format), l.format, k1(calldepth)+1)
 					l.fileObj.write2file(buf.Bytes())
 				} else {
 					var bs []byte
-					l.fileObj.write2file(fmt.Appendln(bs, v...))
+					l.fileObj.write2file(fmt.Appendf(bs, format_string, v...))
 				}
 			}()
 		}
 	}
 	if l.isConsole {
-		__print(l.format, _level, l.level, k1(calldepth), v...)
+		__printf(l.format, _level, l.level, k1(calldepth), format_string, v...)
 	}
 }
 
@@ -410,7 +410,7 @@ func (f *fileObj) openFileHandler() (e error) {
 	fname := fmt.Sprint(f.fileDir, "/", f.fileName)
 	f.fileHandler, e = os.OpenFile(fname, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
 	if e != nil {
-		__print(default_format, LEVEL_ERROR, LEVEL_ERROR, 1, e.Error())
+		__printf(default_format, LEVEL_ERROR, LEVEL_ERROR, 1, e.Error())
 		f.isFileWell = false
 		return
 	}

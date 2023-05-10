@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	. "tool/config"
-	logger "tool/logger"
+	"tool/logger"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -13,23 +13,29 @@ import (
 type Connection struct {
 	DB          *sql.DB
 	IsConnected bool
-	Config      JsonConfig
 }
+
+var logging = logger.GetStaticLogger()
 
 // Connect 初始化mysql
 func (c *Connection) Connect() (conn *sql.Conn, err error) {
 	//连接字符串
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?%s", c.Config.DBConfig.Username, c.Config.DBConfig.Password, c.Config.DBConfig.Host, c.Config.DBConfig.Port, c.Config.DBConfig.Database, "charset=utf8&multiStatements=true")
-	logger.Debug("mysql dsn：", dsn)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=%s&multiStatements=%s",
+		JConfig.DBConfig.Username,
+		JConfig.DBConfig.Password,
+		JConfig.DBConfig.Host,
+		JConfig.DBConfig.Port,
+		JConfig.DBConfig.Database, "utf8", "true")
+	logging.Debug("mysql dsn：", dsn)
 	//Open只会验证dsb的格式是否正确,不会验证是否连接成功,同理,密码是否正确也不知道
 	c.DB, err = sql.Open("mysql", dsn)
 	if err != nil {
-		logger.Error(err.Error())
+		logging.Error(err.Error())
 		return nil, err
 	}
 	conn, err = c.GetConnect()
 	if err != nil {
-		logger.Error(err.Error())
+		logging.Error(err.Error())
 		//panic(err)
 		return nil, err
 	}
@@ -38,7 +44,7 @@ func (c *Connection) Connect() (conn *sql.Conn, err error) {
 
 func (c *Connection) GetConnect() (conn *sql.Conn, err error) {
 	conn, err = c.DB.Conn(context.Background())
-	logger.Info("Connect mysql server success [%s:%s]", c.Config.DBConfig.Host, c.Config.DBConfig.Port)
+	logging.Info("Connect mysql server success [%s:%s]", JConfig.DBConfig.Host, JConfig.DBConfig.Port)
 	return
 }
 
@@ -46,7 +52,7 @@ func (c *Connection) CheckConnect() bool {
 	// 此时尝试连接数据库,会判断用户,密码,ip地址,端口是否正确
 	err := c.DB.Ping()
 	if err != nil {
-		logger.Error(err)
+		logging.Error(err.Error())
 		return false
 	}
 	c.IsConnected = true
@@ -59,6 +65,6 @@ func (c *Connection) Close() (err error) {
 	if err != nil {
 		return err
 	}
-	logger.Info("Close connect success", c.Config.DBConfig.Host, ":", c.Config.DBConfig.Port)
+	logging.Info("Close connect success [%s:%s]", JConfig.DBConfig.Host, JConfig.DBConfig.Port)
 	return nil
 }

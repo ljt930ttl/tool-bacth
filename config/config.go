@@ -18,6 +18,7 @@ type JsonConfig struct {
 		Username string `json:"Username" default:"root"`
 		Password string `json:"Password" default:"123456"`
 		Database string `json:"Database" default:"fpbdsdb_child"`
+		Charset  string `json:"charset" default:"utf8"`
 	}
 	LockInfo struct {
 		StartID        int    `json:"StartID" default:"100"`
@@ -150,6 +151,8 @@ func NewConfig() (jconfig *JsonConfig) {
 	jconfig = new(JsonConfig)
 	if err := jconfig.ReadFile(); err == nil {
 		fmt.Println("读取配置文件成功")
+	} else {
+		fmt.Println("读取配置文件失败", err.Error())
 	}
 	return jconfig
 }
